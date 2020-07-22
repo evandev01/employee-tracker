@@ -1,0 +1,12 @@
+// CREATE TABLE managers(
+    id INT NOT NULL
+    first_name VARCHAR(30)
+    last_name VARCHAR(30)
+)
+if title === ('Sales Manager', "--manager"){
+    connection.query(INSERT INTO managers)
+}
+
+INNER JOIN (employee, role, department)
+
+//role_id matches id from role table//
