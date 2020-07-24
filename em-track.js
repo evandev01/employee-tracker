@@ -64,7 +64,12 @@ function init() {
 
 //function to display all employees//
 function displayEmployees() {
-  let query = ("SELECT employee.id,employee.first_name,employee.last_name, role.title AS role , CONCAT(manager.first_name,' ',manager.last_name) AS manager , department.name AS department FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON  employee.manager_id = manager.id")
+  let query = `SELECT employee.id, employee.first_name, employee.last_name, role.title AS role, 
+  CONCAT(manager.first_name,' ',manager.last_name) AS manager, department.name
+  FROM employee 
+  LEFT JOIN role ON employee.role_id = role.id 
+  LEFT JOIN department ON role.department_id = department.id 
+  LEFT JOIN employee manager ON  employee.manager_id = manager.id`
 
   connection.query(query, function (err, data) {
     if (err) throw err
@@ -103,28 +108,47 @@ function displayEmByDep() {
       })
     })
   })
-}
+};
 
-//   const departments = response.map(function (element){
-//     return 
-// }
+//function to display employees by manager//
+function displayEmByManager() {
+  let query1 = `SELECT * FROM employee e WHERE e.manager_id IS NULL`
 
-// inquirer.prompt({
-//   type: "list",
-//   name: "dept",
-//   message: "Please select department to view employees",
-//   choices: departments
-// })
-// let query2 = ("SELECT employee.id, employee.first_name, employee.last_name, ")
-
-
+  connection.query(query1, function (err, data) {
+    if (err) throw err
+    inquirer.prompt([{
+      type: "list",
+      name: "emByManager",
+      message: "Please select manager to view employees",
+      choices: function () {
+        let managers = [];
+        for (var i = 0; i < data.length; i++) {
+          managers.push(data[i].emByManager)
+        }
+        return managers
+      }
+    }])
+      console.table(managers)
+})
+.then(function (answer) {
+    let query2 = `SELECT e.id, e.first_name, e.last_name, e.role_id AS role, CONCAT(manager.first_name, ' ', manager.last_name) as manager, department.name AS department FROM employee e
+    LEFT JOIN role r on e.role_id = r.id
+    LEFT JOIN department d on d.id = r.d_id
+    LEFT JOIN employee manager on e.manager_id = manager.id
+    WHERE ?`
+    connection.query(query2, [{ name: answer.emByManager }], function (err, res) {
+      if (err) throw err
+      console.table(res)
+    })
+  })
+};
 // get list of employees from employee table
 // ask user which employee they'd like to update
 // get list of roles from the role table
 // update employe set role = new rold_id where id = selected_employee_id
 
 function updateEmpRole() {
-  let query = ("select * from employee");
+  let query = ("SELECT * FROM employee");
 
   connection.query(query, function (err, response) {
 
@@ -143,7 +167,7 @@ function updateEmpRole() {
       choices: employees
     }]).then(function (input1) {
 
-      connection.query("select * from role", function (err, data) {
+      connection.query("SELECT * FROM role", function (err, data) {
 
         const roles = data.map(function (role) {
           return {
@@ -162,12 +186,10 @@ function updateEmpRole() {
           console.log("Update employee set role_id=" + input2.roleId + " where id=" + input1.employeeId)
         })
       })
-
     })
-
   })
-
 }
+
   // connection.query("SELECT *FROM role", function (err, data) {
   //   roles = data.map(roles => {
   //     return { name: roles.title, value: data.id }

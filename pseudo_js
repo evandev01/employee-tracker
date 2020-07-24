@@ -74,4 +74,12 @@ function updateEmpManager(){
     connection.query()
 }
 
+    let managers = data.map(function (element) {
+      return{
+        id: `${element.id}`,
+        name: `${element.first_name} ${element.last_name}`,
+        role_id: `${element.role_id}`,
+        manager_id: `${element.manager_id}`
+      }
+
 
