@@ -10,3 +10,6 @@ if title === ('Sales Manager', "--manager"){
 INNER JOIN (employee, role, department)
 
 //role_id matches id from role table//
+
+//SELECT role.id, role.department_id, employee.role_id FROM role 
+LEFT JOIN employee ON  
