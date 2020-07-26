@@ -2,6 +2,7 @@ var mysql = require("mysql");
 var express = require("express");
 var inquirer = require("inquirer");
 const cTable = require("console.table");
+const { response } = require("express");
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -45,6 +46,14 @@ function init() {
 
         case "Add Employee":
           addEmployee();
+          break;
+
+        case "Add Role":
+          addRole();
+          break;
+
+        case "Add Department":
+          addDepartment();
           break;
 
         case "Remove Employee":
@@ -114,39 +123,39 @@ function displayEmByDep() {
 function displayEmByManager() {
   let query1 = `SELECT * FROM employee e WHERE e.manager_id IS NULL`
 
-  connection.query(query1, function (err, data) {
+  connection.query(query1, function (err, res) {
     if (err) throw err
+    const managers = res.map(function (element) {
+      return {
+        name: `${element.first_name} ${element.last_name}`,
+        value: element.id
+      }
+    })
     inquirer.prompt([{
       type: "list",
       name: "emByManager",
       message: "Please select manager to view employees",
-      choices: function () {
-        let managers = [];
-        for (var i = 0; i < data.length; i++) {
-          managers.push(data[i].emByManager)
-        }
-        return managers
-      }
+      choices: managers
     }])
-      console.table(managers)
-})
-.then(function (answer) {
-    let query2 = `SELECT e.id, e.first_name, e.last_name, e.role_id AS role, CONCAT(manager.first_name, ' ', manager.last_name) as manager, department.name AS department FROM employee e
-    LEFT JOIN role r on e.role_id = r.id
-    LEFT JOIN department d on d.id = r.d_id
-    LEFT JOIN employee manager on e.manager_id = manager.id
-    WHERE ?`
-    connection.query(query2, [{ name: answer.emByManager }], function (err, res) {
-      if (err) throw err
-      console.table(res)
-    })
-  })
-};
-// get list of employees from employee table
-// ask user which employee they'd like to update
-// get list of roles from the role table
-// update employe set role = new rold_id where id = selected_employee_id
+      .then(function (response) {
+        console.log(response.emByManager)
+        let query2 = `SELECT employee.id, employee.first_name, employee.last_name, employee.role_id AS role, CONCAT(manager.first_name, ' ', manager.last_name) as manager, department.name AS department FROM employee
+        LEFT JOIN role on employee.role_id = role.id
+        LEFT JOIN department on department.id = role.department_id
+        LEFT JOIN employee manager on employee.manager_id = manager.id
+        WHERE employee.manager_id = ?`
+        connection.query(query2, [response.emByManager], function (err, data) {
+          if (err) throw err
+          console.table(data)
+          init()
+        })
+      })
 
+  })
+
+};
+
+//function to update employee role
 function updateEmpRole() {
   let query = ("SELECT * FROM employee");
 
@@ -159,7 +168,6 @@ function updateEmpRole() {
       }
     })
 
-    //console.log(employees)
     inquirer.prompt([{
       type: "list",
       name: "employeeId",
@@ -182,83 +190,90 @@ function updateEmpRole() {
           message: "What's the new role",
           choices: roles
         }]).then(function (input2) {
+          const query1 = `UPDATE employee
+          SET employee.role_id = ? 
+          WHERE employee.id = ?`
+          connection.query(query1, [input2.roleId, input1.employeeId], function (err, res) {
+            var tempPosition;
+            // will return the updated position
+            for (var k = 0; k < roles.length; k++) {
+              if (roles[k].value == input2.roleId) {
+                tempPosition = roles[k].name;
+              }
+            }
+            // will return the employee
+            var tempName;
+            for (var g = 0; g < employees.length; g++) {
+              if (employees[g].value == input1.employeeId) {
+                tempName = employees[g].name;
+              }
+            }
 
-          console.log("Update employee set role_id=" + input2.roleId + " where id=" + input1.employeeId)
+            if (res.changedRows === 1) {
+              console.log(`Successfully updated ${tempName} to position of ${tempPosition}`);
+            } else {
+              console.log(`Error: ${tempName}'s current position is ${tempPosition}`)
+            }
+            // console.log(res.changedRows);
+          })
         })
       })
     })
   })
 }
 
-  // connection.query("SELECT *FROM role", function (err, data) {
-  //   roles = data.map(roles => {
-  //     return { name: roles.title, value: data.id }
-  //   })
-  //   inquirer.prompt({
-  //     type: "list",
-  //     name: "roles",
-  //     choices: roles,
-  //     message: "What is the employee's current role?"
-  //   })
-  // })
-  //   .then(function (response) {
-  //     let roleEm;
-  //     let query = ("SELECT employee.first_name, employee.last_name, role.title AS role")
-  //     query += ("LEFT JOIN employee ON response = role.title")
-  //     if (response === "role.title"){
-  //       connection.query(query, function(err, data){
-  //         if (err) throw err;
-  //         return (data)
-  //         })
-  //         console.table(data);
-  //   }})
+//function to add a new employee
+function addEmployee() {
+  let addQuery = `SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, role.title, department.name,
+  role.salary, employee.manager_id 
+    FROM employee
+    INNER JOIN role on role.id = employee.role_id
+    INNER JOIN department ON department.id = role.department_id`
+  connection.query(addQuery, function (err, results) {
+    if (err) throw err
+    inquirer.prompt([
+      {
+        type: "input",
+        name: "first_name",
+        message: "Please enter employee first name"
+      },
+      {
+        type: "input",
+        name: "last_name",
+        message: "Please enter employee last name"
+      },
+      {
+        type: "list",
+        name: "role",
+        message: "Please select employee title",
+        choices: results.map(role => {
+          return { name: role.title, value: role.role_id }
+        })
 
-  //     };
+      },
+      {
+        type: "input",
+        name: "manager",
+        message: "Please enter employee manager id"
+      }
+    ]).then(function (answer) {
+      console.log(answer)
+      connection.query(
+        "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)",
+        [answer.first_name, answer.last_name, answer.role, answer.manager],
+        function (err) {
+          if (err) throw err
+          console.log(`${answer.first_name} ${answer.last_name} added as a new employee`)
+          init();
+        })
+    })
+  })
+}
 
-  // get list of employees from employee table
-  // ask user which employee they'd like to update
-  // get list of roles from the role table
-  // update employe set role = new rold_id where id = selected_employee_id
+function addRole() {
 
-// let employees;
-// connection.query("SELECT * FROM employee", function (err, data) {
-//   employees = data.map(employees => {
-//     return {name: employees.first_name + " " + employees.last_name}
-//   })
-//   inquirer.prompt({
-//     type: "list",
-//     name: "emList",
-//     choices: employees,
-//     message: "Please select employee to update role"
-//   })
-//   console.table(employees);
-// })
-
-// function displayEmByDep(list){
-//     var query = "INNER JOIN department.name, employee.first_name, employee.last_name";
-//     connection.query(query, function (err, res){
-//       if (err) throw err
-//       console.log(list)
-//     })
-// }
-
-// function displayEmByManager(){
-//     connection.query(SELECT * FROM employee WHERE )
-// }
-
-// function addEmployee(answer){
-//     let query = "INSERT INTO employee first_name, last_name, role_id, manager_id";
-//     query += "VALUES answer.first_name, answer.last_name";
-//     connection.query(query, function(err, res){
-//       if (err) throw err
-//       console.log("success")
-//     })};
-
+}
 // function removeEmployee(){
-//     connection.query()
-// }
-
-// function updateEmpRole(){
 //     connection.query()
 // }
 
