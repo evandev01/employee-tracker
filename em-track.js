@@ -27,7 +27,7 @@ function init() {
     name: "start",
     message: "What would you like to do?",
     choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager",
-      "Add Employee", "Remove Employee", "Update Employee Role", "Update Employee Manager"]
+      "Add Employee", "Remove Employee", "Update Employee Role", "Add Employee Role", "Add New Department", "Update Employee Manager"]
   })
     .then(function (response) {
       switch (response.start) {
@@ -48,16 +48,16 @@ function init() {
           addEmployee();
           break;
 
-        case "Add Role":
+        case "Remove Employee":
+          removeEmployee();
+          break;
+
+        case "Add Employee Role":
           addRole();
           break;
 
-        case "Add Department":
+        case "Add New Department":
           addDepartment();
-          break;
-
-        case "Remove Employee":
-          removeEmployee();
           break;
 
         case "Update Employee Role":
@@ -270,8 +270,39 @@ function addEmployee() {
   })
 }
 
+//function to add a new role
 function addRole() {
-
+  let query1 = `SELECT * FROM role`
+  connection.query(query1, (err, data) => {
+    if (err) throw err
+    inquirer.prompt([
+      {
+        type: "input",
+        name: "roleId",
+        message: "Please enter id for new role"
+      },
+      {
+        type: "input",
+        name: "role",
+        message: "Please enter title of new role"
+      }, {
+        type: "input",
+        name: "salary",
+        message: "Please enter salary for new role"
+      }, {
+        type: "input",
+        name: "deptId",
+        message: "Please enter department id for new role"
+      }
+    ]).then(function (answers) {
+      let query2 = `INSERT INTO role VALUES (?,?,?,?)`
+      connection.query(query2, [answers.roleId, answers.role, answers.salary, answers.deptId], function (err) {
+        if (err) throw err
+        console.log(`${answers.role} added as new role`)
+        init();
+      })
+    })
+  })
 }
 // function removeEmployee(){
 //     connection.query()
