@@ -101,7 +101,7 @@ function viewDepartments() {
     if (err) throw err;
     console.table(data)
     init();
-  })  
+  })
 };
 
 function viewRoles() {
@@ -359,7 +359,7 @@ function addRole() {
 //function to add new department
 function addDepartment() {
   let query1 = `SELECT * FROM department`
-  connection.query(query1, function (err, res) {
+  connection.query(query1, (err, res) => {
     if (err) throw err
     inquirer.prompt([{
       type: "input",
@@ -382,32 +382,48 @@ function addDepartment() {
 
 //function to update employee manager
 function updateEmpManager() {
-  let query1 = `SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, employee.manager_id 
-  FROM employee`
-  connection.query(query1, (err, res) => {
+  let query1 = `SELECT * FROM employee`
+  let managerQuery = `SELECT * FROM employee WHERE employee.manager_id IS NULL`
+
+  connection.query(managerQuery, (err, results) => {
     if (err) throw err;
-    console.log(res);
+    var managerResults = results.map(managers => {
+      return {
+        name: `${managers.first_name} ${managers.last_name}`,
+        value: managers.manager_id
+      }
+    })
+    
+    console.log(results)
+  })
+
+  connection.query(query1, (err, data) => {
+    if (err) throw err;
     inquirer.prompt([
       {
         type: "list",
-        name: "emList",
+        name: "emId",
         message: "Please select employee to update manager",
-        choices: res.map(employees => {
-          name: `${employees.first_name} ${employees.last_name}`
-          value: employees.id
+        choices: data.map(employee => {
+          return {
+            name: `${employee.first_name} ${employee.last_name}`,
+            value: employee.id
+          }
         })
       }, {
-        type: "input",
-        name: "newId",
-        message: "Please enter new manager id"
+        type: "list",
+        name: "managerId",
+        message: "Please select new manager for employee",
+        choices: managerResults
+
       }]).then(answer => {
+        
         let query2 = `UPDATE employee
-            SET employee.manager_id = ?
-            WHERE employee.id = ?`
-        connection.query(query2, [answer.newId, answer.id], (err) => {
+            SET employee.manager_id = ? WHERE employee.id = ?`
+        connection.query(query2, [answer.managerId, answer.emId], (err) => {
           if (err) throw err;
           console.log(`${answer.first_name} ${answer.last_name} manager updated`);
         })
       })
   })
-}
+};
