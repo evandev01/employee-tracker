@@ -270,6 +270,29 @@ function addEmployee() {
   })
 }
 
+//function to remove employee
+function removeEmployee() {
+  let query1 = `SELECT * FROM employee`
+  connection.query(query1, (err, res) => {
+    if (err) throw err
+    inquirer.prompt([{
+      type: "list",
+      name: "emId",
+      message: "Please select employee to remove",
+      choices: res.map(employee => {
+        return { name: `${employee.first_name} ${employee.last_name}`, value: employee.id }
+      })
+    }]).then(answer => {
+      let query2 = `DELETE FROM employee WHERE ?`
+      connection.query(query2, [{ id: answer.emId }], (err) => {
+        if (err) throw err;
+        console.log("Employee removed");
+        init();
+      })
+    })
+  })
+}
+
 //function to add a new role
 function addRole() {
   let query1 = `SELECT * FROM role`
@@ -304,6 +327,32 @@ function addRole() {
     })
   })
 }
+
+//function to add new department
+function addDepartment() {
+  let query1 = `SELECT * FROM department`
+  connection.query(query1, function (err, res) {
+    if (err) throw err
+    inquirer.prompt([{
+      type: "input",
+      name: "deptId",
+      message: "Please enter id for new department"
+    }, {
+      type: "input",
+      name: "deptName",
+      message: "Please enter name for new department"
+    }]).then(answers => {
+      let query2 = `INSERT INTO department VALUES (?,?)`
+      connection.query(query2, [answers.deptId, answers.deptName], (err) => {
+        if (err) throw err
+        console.log(`${answers.deptName} added as a new department`)
+        init();
+      })
+    })
+  })
+}
+
+
 // function removeEmployee(){
 //     connection.query()
 // }
