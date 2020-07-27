@@ -26,7 +26,7 @@ function init() {
     type: "list",
     name: "start",
     message: "What would you like to do?",
-    choices: ["View All Employees", "View All Employees By Department", "View All Employees By Manager",
+    choices: ["View All Employees", "View All Departments", "View All Roles", "View All Employees By Department", "View All Employees By Manager",
       "Add Employee", "Remove Employee", "Update Employee Role", "Add Employee Role", "Add New Department", "Update Employee Manager"]
   })
     .then(function (response) {
@@ -34,6 +34,14 @@ function init() {
 
         case "View All Employees":
           displayEmployees();
+          break;
+
+        case "View All Departments":
+          viewDepartments();
+          break;
+
+        case "View All Roles":
+          viewRoles();
           break;
 
         case "View All Employees By Department":
@@ -87,6 +95,24 @@ function displayEmployees() {
   })
 };
 
+function viewDepartments() {
+  let query1 = `SELECT * FROM department`
+  connection.query(query1, (err, data) => {
+    if (err) throw err;
+    console.table(data)
+    init();
+  })  
+};
+
+function viewRoles() {
+  let query1 = `SELECT * FROM role`
+  connection.query(query1, (err, data) => {
+    if (err) throw err;
+    console.table(data)
+    init();
+  })
+};
+
 //function to display employees by department//
 function displayEmByDep() {
   let query1 = ("SELECT * FROM department");
@@ -118,6 +144,8 @@ function displayEmByDep() {
     })
   })
 };
+
+
 
 //function to display employees by manager//
 function displayEmByManager() {
@@ -154,74 +182,6 @@ function displayEmByManager() {
   })
 
 };
-
-//function to update employee role
-function updateEmpRole() {
-  let query = ("SELECT * FROM employee");
-
-  connection.query(query, function (err, response) {
-
-    const employees = response.map(function (element) {
-      return {
-        name: `${element.first_name} ${element.last_name}`,
-        value: element.id
-      }
-    })
-
-    inquirer.prompt([{
-      type: "list",
-      name: "employeeId",
-      message: "Which employees role do you want to update",
-      choices: employees
-    }]).then(function (input1) {
-
-      connection.query("SELECT * FROM role", function (err, data) {
-
-        const roles = data.map(function (role) {
-          return {
-            name: role.title,
-            value: role.id
-          }
-        })
-
-        inquirer.prompt([{
-          type: "list",
-          name: "roleId",
-          message: "What's the new role",
-          choices: roles
-        }]).then(function (input2) {
-          const query1 = `UPDATE employee
-          SET employee.role_id = ? 
-          WHERE employee.id = ?`
-          connection.query(query1, [input2.roleId, input1.employeeId], function (err, res) {
-            var tempPosition;
-            // will return the updated position
-            for (var k = 0; k < roles.length; k++) {
-              if (roles[k].value == input2.roleId) {
-                tempPosition = roles[k].name;
-              }
-            }
-            // will return the employee
-            var tempName;
-            for (var g = 0; g < employees.length; g++) {
-              if (employees[g].value == input1.employeeId) {
-                tempName = employees[g].name;
-              }
-            }
-
-            if (res.changedRows === 1) {
-              console.log(`Successfully updated ${tempName} to position of ${tempPosition}`);
-            } else {
-              console.log(`Error: ${tempName}'s current position is ${tempPosition}`)
-            }
-            // console.log(res.changedRows);
-          })
-        })
-      })
-    })
-  })
-}
-
 //function to add a new employee
 function addEmployee() {
   let addQuery = `SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, role.title, department.name,
@@ -291,6 +251,74 @@ function removeEmployee() {
       })
     })
   })
+};
+
+
+//function to update employee role
+function updateEmpRole() {
+  let query = ("SELECT * FROM employee");
+
+  connection.query(query, function (err, response) {
+
+    const employees = response.map(function (element) {
+      return {
+        name: `${element.first_name} ${element.last_name}`,
+        value: element.id
+      }
+    })
+
+    inquirer.prompt([{
+      type: "list",
+      name: "employeeId",
+      message: "Which employees role do you want to update",
+      choices: employees
+    }]).then(function (input1) {
+
+      connection.query("SELECT * FROM role", function (err, data) {
+
+        const roles = data.map(function (role) {
+          return {
+            name: role.title,
+            value: role.id
+          }
+        })
+
+        inquirer.prompt([{
+          type: "list",
+          name: "roleId",
+          message: "What's the new role",
+          choices: roles
+        }]).then(function (input2) {
+          const query1 = `UPDATE employee
+          SET employee.role_id = ? 
+          WHERE employee.id = ?`
+          connection.query(query1, [input2.roleId, input1.employeeId], function (err, res) {
+            var tempPosition;
+            // will return the updated position
+            for (var k = 0; k < roles.length; k++) {
+              if (roles[k].value == input2.roleId) {
+                tempPosition = roles[k].name;
+              }
+            }
+            // will return the employee
+            var tempName;
+            for (var g = 0; g < employees.length; g++) {
+              if (employees[g].value == input1.employeeId) {
+                tempName = employees[g].name;
+              }
+            }
+
+            if (res.changedRows === 1) {
+              console.log(`Successfully updated ${tempName} to position of ${tempPosition}`);
+            } else {
+              console.log(`Error: ${tempName}'s current position is ${tempPosition}`)
+            }
+            // console.log(res.changedRows);
+          })
+        })
+      })
+    })
+  })
 }
 
 //function to add a new role
@@ -352,11 +380,34 @@ function addDepartment() {
   })
 }
 
-
-// function removeEmployee(){
-//     connection.query()
-// }
-
-// function updateEmpManager(){
-//     connection.query()
-// }
+//function to update employee manager
+function updateEmpManager() {
+  let query1 = `SELECT employee.id, employee.first_name, employee.last_name, employee.role_id, employee.manager_id 
+  FROM employee`
+  connection.query(query1, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+    inquirer.prompt([
+      {
+        type: "list",
+        name: "emList",
+        message: "Please select employee to update manager",
+        choices: res.map(employees => {
+          name: `${employees.first_name} ${employees.last_name}`
+          value: employees.id
+        })
+      }, {
+        type: "input",
+        name: "newId",
+        message: "Please enter new manager id"
+      }]).then(answer => {
+        let query2 = `UPDATE employee
+            SET employee.manager_id = ?
+            WHERE employee.id = ?`
+        connection.query(query2, [answer.newId, answer.id], (err) => {
+          if (err) throw err;
+          console.log(`${answer.first_name} ${answer.last_name} manager updated`);
+        })
+      })
+  })
+}
