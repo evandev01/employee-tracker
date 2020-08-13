@@ -26,7 +26,7 @@ function init() {
     name: "start",
     message: "What would you like to do?",
     choices: ["View All Employees", "View All Departments", "View All Roles", "View All Employees By Department", "View All Employees By Manager",
-      "Add Employee", "Remove Employee", "Update Employee Role", "Add Employee Role", "Add New Department", "Update Employee Manager"]
+      "Add Employee", "Remove Employee", "Update Employee Role", "Add Employee Role", "Remove Role", "Add New Department", "Remove Department", "Update Employee Manager"]
   })
     .then(function (response) {
       switch (response.start) {
@@ -59,16 +59,24 @@ function init() {
           removeEmployee();
           break;
 
+        case "Update Employee Role":
+          updateEmpRole();
+          break;
+
         case "Add Employee Role":
           addRole();
+          break;
+
+        case "Remove Role":
+          removeRole();
           break;
 
         case "Add New Department":
           addDepartment();
           break;
 
-        case "Update Employee Role":
-          updateEmpRole();
+        case "Remove Department":
+          removeDept();
           break;
 
         case "Update Employee Manager":
@@ -243,6 +251,28 @@ function removeEmployee() {
   })
 };
 
+function removeRole() {
+  let query1 = `SELECT * FROM role`
+  connection.query(query1, (err, res) => {
+    if (err) throw err;
+    inquirer.prompt([{
+      type: "list",
+      name: "roleId",
+      message: "Please select role to remove",
+      choices: res.map(roles => {
+        return { name: `${roles.title}`, value: roles.id }
+      })
+    }])
+      .then(answer => {
+        let query2 = `DELETE FROM role WHERE ?`
+        connection.query(query2, [{ id: answer.roleId }], (err) => {
+          if (err) throw err;
+          console.log("Role removed");
+          init();
+        })
+      })
+  })
+};
 
 //function to update employee role
 function updateEmpRole() {
@@ -370,7 +400,30 @@ function addDepartment() {
         })
       })
   })
-}
+};
+
+function removeDept() {
+  let query1 = `SELECT * FROM department`
+  connection.query(query1, (err, res) => {
+    if (err) throw err;
+    inquirer.prompt([{
+      type: "list",
+      name: "deptId",
+      message: "Please select a department to remove",
+      choices: res.map(departments => {
+        return { name: `${departments.name}`, value: departments.id }
+      })
+    }])
+      .then(answer => {
+        let query2 = `DELETE FROM department WHERE ?`
+        connection.query(query2, [{ id: answer.deptId }], (err) => {
+          if (err) throw err;
+          console.log("Department removed")
+          init();
+        })
+      })
+  })
+};
 
 //function to update employee manager
 function updateEmpManager() {

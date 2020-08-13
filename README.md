@@ -8,12 +8,13 @@ Application solution for managing a company's employees using node, inquirer, an
   * [Contributing](#authored-by)
 
   ## Installation:
-  Click the link below and clone "employee-tracker" to your local computer.
-  https://github.com/evandev01/employee-tracker
+  Use the SSH key below to clone application to your local computer using terminal.
+
+  git@github.com:evandev01/employee-tracker.git
 
   ## Usage:
-   Open terminal and use NODE to run index.js file.   
-     Then follow the prompts. 
+   Navigate to root folder of application and use node em-track.js in the command line to start the server.
+   Then follow the prompts.
 
   ## License:
    MIT
