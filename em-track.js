@@ -26,7 +26,7 @@ function init() {
     name: "start",
     message: "What would you like to do?",
     choices: ["View All Employees", "View All Departments", "View All Roles", "View All Employees By Department", "View All Employees By Manager",
-      "Add Employee", "Remove Employee", "Update Employee Role", "Add Employee Role", "Remove Role", "Add New Department", "Remove Department", "Update Employee Manager"]
+      "Add Employee", "Remove Employee", "Update Employee Role", "Add Employee Role", "Remove Role", "Add New Department", "Remove Department"]
   })
     .then(function (response) {
       switch (response.start) {
@@ -425,50 +425,50 @@ function removeDept() {
   })
 };
 
-//function to update employee manager
-function updateEmpManager() {
-  let query1 = `SELECT * FROM employee`
-  let managerQuery = `SELECT * FROM employee WHERE employee.manager_id IS NULL`
+//Future development: function to update employee manager
+// function updateEmpManager() {
+//   let query1 = `SELECT * FROM employee`
+//   let managerQuery = `SELECT * FROM employee WHERE employee.manager_id IS NULL`
 
-  connection.query(managerQuery, (err, results) => {
-    if (err) throw err;
-    var managerResults = results.map(managers => {
-      return {
-        name: `${managers.first_name} ${managers.last_name}`,
-        value: managers.manager_id
-      }
-    })
+//   connection.query(managerQuery, (err, results) => {
+//     if (err) throw err;
+//     var managerResults = results.map(managers => {
+//       return {
+//         name: `${managers.first_name} ${managers.last_name}`,
+//         value: managers.manager_id
+//       }
+//     })
 
-    console.log(results)
-  })
+//     console.log(results)
+//   })
 
-  connection.query(query1, (err, data) => {
-    if (err) throw err;
-    inquirer.prompt([
-      {
-        type: "list",
-        name: "emId",
-        message: "Please select employee to update manager",
-        choices: data.map(employee => {
-          return {
-            name: `${employee.first_name} ${employee.last_name}`,
-            value: employee.id
-          }
-        })
-      }, {
-        type: "list",
-        name: "managerId",
-        message: "Please select new manager for employee",
-        choices: managerResults
+//   connection.query(query1, (err, data) => {
+//     if (err) throw err;
+//     inquirer.prompt([
+//       {
+//         type: "list",
+//         name: "emId",
+//         message: "Please select employee to update manager",
+//         choices: data.map(employee => {
+//           return {
+//             name: `${employee.first_name} ${employee.last_name}`,
+//             value: employee.id
+//           }
+//         })
+//       }, {
+//         type: "list",
+//         name: "managerId",
+//         message: "Please select new manager for employee",
+//         choices: managerResults
 
-      }])
-      .then(answer => {
-        let query2 = `UPDATE employee
-            SET employee.manager_id = ? WHERE employee.id = ?`
-        connection.query(query2, [answer.managerId, answer.emId], (err) => {
-          if (err) throw err;
-          console.log(`${answer.first_name} ${answer.last_name} manager updated`);
-        })
-      })
-  })
-};
+//       }])
+//       .then(answer => {
+//         let query2 = `UPDATE employee
+//             SET employee.manager_id = ? WHERE employee.id = ?`
+//         connection.query(query2, [answer.managerId, answer.emId], (err) => {
+//           if (err) throw err;
+//           console.log(`${answer.first_name} ${answer.last_name} manager updated`);
+//         })
+//       })
+//   })
+// };
