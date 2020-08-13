@@ -21,3 +21,8 @@ Application solution for managing a company's employees using node, inquirer, an
 
    ## Authored By:
    Evan Bero (evanDev)
+   
+   ## How To Video
+   https://www.youtube.com/watch?v=2LZB6s50KIo
+   
+   
